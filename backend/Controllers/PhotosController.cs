@@ -100,7 +100,23 @@ public class PhotosController : ControllerBase
 
       if (categoryId.HasValue)
       {
-          query = query.Where(p => p.CategoryId == categoryId.Value);
+          // Collect the selected category + all its descendants (BFS)
+          var allCats = await _db.Categories
+              .Select(c => new { c.Id, c.ParentId })
+              .ToListAsync();
+
+          var categoryIds = new HashSet<int>();
+          var queue = new Queue<int>();
+          queue.Enqueue(categoryId.Value);
+          while (queue.Count > 0)
+          {
+              var current = queue.Dequeue();
+              categoryIds.Add(current);
+              foreach (var child in allCats.Where(c => c.ParentId == current))
+                  queue.Enqueue(child.Id);
+          }
+
+          query = query.Where(p => categoryIds.Contains(p.CategoryId));
       }
 
       if (!string.IsNullOrEmpty(tag))
