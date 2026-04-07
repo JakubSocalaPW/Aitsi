@@ -2,6 +2,7 @@
 
 /backend/bin
 /backend/wwwroot/uploads/*
+!/backend/wwwroot/uploads/.gitkeep
 /backend/obj/Debug
 
 .git.old

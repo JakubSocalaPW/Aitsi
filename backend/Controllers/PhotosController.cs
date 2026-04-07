@@ -186,7 +186,8 @@ public class PhotosController : ControllerBase
             return BadRequest("Plik jest wymagany");
 
         // Save file to wwwroot/uploads
-        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads");
+        var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+        var uploadsDir = Path.Combine(webRoot, "uploads");
         Directory.CreateDirectory(uploadsDir);
 
         var ext = Path.GetExtension(dto.File.FileName);
@@ -310,7 +311,8 @@ public class PhotosController : ControllerBase
         // Delete physical file from disk
         if (!string.IsNullOrEmpty(photo.ImagePath))
         {
-            var filePath = Path.Combine(_env.WebRootPath, photo.ImagePath.TrimStart('/'));
+            var webRootForDelete = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            var filePath = Path.Combine(webRootForDelete, photo.ImagePath.TrimStart('/'));
             if (System.IO.File.Exists(filePath))
                 System.IO.File.Delete(filePath);
         }
