@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Utilities — Modern Heritage Editorial
+   ========================================================================== */
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Container */
+.container {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+
+@media (max-width: 768px) {
+  .container { padding-inline: 16px; }
+}
+
+/* Buttons — Heritage Design System */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: var(--font-label);
+  font-size: var(--label-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 44px;
+  letter-spacing: 0.02em;
+}
+
+.btn:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-container);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--on-secondary);
+}
+
+.btn-secondary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline:hover {
+  background: rgba(0, 70, 74, 0.05);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--primary);
+  padding: 8px 12px;
+}
+
+.btn-ghost:hover {
+  background: rgba(0, 70, 74, 0.05);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: var(--on-error);
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* Card — Tonal Stacking, no borders */
+.card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Section spacing */
+.section {
+  padding-block: 96px;
+}
+
+/* Text helpers */
+.text-center { text-align: center; }
+.text-muted { color: var(--on-surface-variant); }
+.text-sm { font-size: var(--body-sm); }
+
+/* Font family helpers */
+.font-headline { font-family: var(--font-headline); }
+.font-label { font-family: var(--font-label); }
+
+/* Flex helpers */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: 8px; }
+.gap-md { gap: 16px; }
+.gap-lg { gap: 24px; }
+
+/* Ghost Border utility */
+.ghost-border {
+  border: 1px solid var(--ghost-border);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

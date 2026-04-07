@@ -1,0 +1,9 @@
+/frontend/node_modules
+
+/backend/bin
+/backend/wwwroot/uploads/*
+/backend/obj/Debug
+
+.git.old
+
+google.auth.data.secrets

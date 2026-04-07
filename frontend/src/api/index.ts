@@ -1,0 +1,5 @@
+export { authApi } from './auth.api'
+export { photosApi } from './photos.api'
+export { categoriesApi } from './categories.api'
+export { adminApi } from './admin.api'
+export { commentsApi } from './comments.api'
