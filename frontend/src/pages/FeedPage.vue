@@ -307,7 +307,7 @@ onMounted(() => {
    -------------------------------------------------------------------------- */
 .feed__column {
   flex: 1;
-  max-width: 42rem;
+  max-width: 82rem;
   margin: 0 auto;
 }
 

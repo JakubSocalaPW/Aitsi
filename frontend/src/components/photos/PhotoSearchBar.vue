@@ -103,7 +103,7 @@ onMounted(() => {
   width: 100%;
   height: 48px;
   padding: 8px 40px 8px 16px;
-  border: 2px solid transparent;
+  border: 2px solid #ccc;
   border-radius: var(--radius-md);
   background: var(--surface-container-low);
   color: var(--on-surface);

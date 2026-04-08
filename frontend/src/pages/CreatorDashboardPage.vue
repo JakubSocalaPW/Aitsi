@@ -46,8 +46,6 @@ const sidebarLinks = [
   { icon: 'home', label: t('adminDashboard.sideHome'), active: false, route: '/przegladaj' },
   { icon: 'account_balance', label: t('adminDashboard.sideArchive'), active: true, route: '/panel-tworcy' },
   { icon: 'upload_file', label: t('adminDashboard.sideUploads'), active: false, route: '/moje-zdjecia' },
-  { icon: 'gavel', label: t('adminDashboard.sideModeration'), active: false, route: '/admin' },
-  { icon: 'history', label: t('adminDashboard.sideAuditLog'), active: false, route: '/panel-tworcy' },
 ]
 
 async function deleteMaterial(id: number) {

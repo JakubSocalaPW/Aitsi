@@ -77,7 +77,9 @@ const sidebarLinks = [
   { icon: 'account_balance', label: t('adminDashboard.sideArchive'), active: false, route: '/przegladaj' },
   { icon: 'upload_file', label: t('adminDashboard.sideUploads'), active: false, route: '/moje-zdjecia' },
   { icon: 'gavel', label: t('adminDashboard.sideModeration'), active: true, route: '/admin' },
-  { icon: 'history', label: t('adminDashboard.sideAuditLog'), active: false, route: '/admin' },
+  { icon: 'gavel', label: 'Zarządzaj kategoriami', active: false, route: '/admin/kategorie' },
+  { icon: 'gavel', label: 'Zarządzaj użytkownikami', active: false, route: '/admin/uzytkownicy' },
+
 ]
 
 </script>
@@ -229,14 +231,14 @@ const sidebarLinks = [
 
           <!-- Audit Log + Moderator Card -->
           <div class="admin__aside">
-            <h2 class="admin__aside-title">{{ t('adminDashboard.recentActions') }}</h2>
+            <!-- <h2 class="admin__aside-title">{{ t('adminDashboard.recentActions') }}</h2>
 
             <div class="admin__audit">
               <div class="admin__audit-empty">
                 <span class="material-symbols-outlined">history</span>
                 <p>Brak ostatnich akcji</p>
               </div>
-            </div>
+            </div> -->
 
             <!-- Moderator Card -->
             <div class="admin__moderator">

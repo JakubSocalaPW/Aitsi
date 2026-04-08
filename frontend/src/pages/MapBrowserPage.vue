@@ -22,7 +22,7 @@ const legendOpen = ref(false)
 const searchQuery = ref('')
 const activeCategoryId = ref<number | null>(null)
 const yearFrom = ref(1850)
-const yearTo = ref(new Date().getFullYear()anow resolv)
+const yearTo = ref(new Date().getFullYear())
 const sortDir = ref<'desc' | 'asc'>('desc')
 
 /* ---- Results ---- */

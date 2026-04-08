@@ -170,7 +170,7 @@ const isEditing = computed(() => !!props.category)
 .form-field select {
   width: 100%;
   padding: 8px 12px;
-  border: 2px solid transparent;
+  border: 2px solid #ccc;
   border-radius: var(--radius-md);
   background-color: var(--surface-container-low);
   color: var(--on-surface);
