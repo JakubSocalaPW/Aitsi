@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
     path: '/kroniki',
     name: 'feed',
     component: () => import('@/pages/FeedPage.vue'),
-    meta: { title: 'Kroniki spolecznosci', hideFooter: true }
+    meta: { title: 'Kroniki społeczności', hideFooter: true }
   },
   {
     path: '/mapa',
@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
     path: '/przegladaj',
     name: 'browse',
     component: () => import('@/pages/BrowsePage.vue'),
-    meta: { title: 'Przegladaj archiwum' }
+    meta: { title: 'Przeglądaj archiwum' }
   },
   {
     path: '/przegladaj/:categoryId',
@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
     path: '/zdjecie/:id',
     name: 'photo-detail',
     component: () => import('@/pages/PhotoDetailPage.vue'),
-    meta: { title: 'Zdjecie' },
+    meta: { title: 'Zdjęcie' },
     props: true
   },
   {
@@ -63,26 +63,26 @@ const routes: RouteRecordRaw[] = [
     path: '/moje-zdjecia',
     name: 'my-photos',
     component: () => import('@/pages/MyPhotosPage.vue'),
-    meta: { title: 'Moje zdjecia', requiresAuth: true }
+    meta: { title: 'Moje zdjęcia', requiresAuth: true }
   },
   {
     path: '/dodaj-zdjecie',
     name: 'upload-photo',
     component: () => import('@/pages/UploadPhotoPage.vue'),
-    meta: { title: 'Dodaj zdjecie', requiresAuth: true }
+    meta: { title: 'Dodaj zdjęcie', requiresAuth: true }
   },
   {
     path: '/edytuj-zdjecie/:id',
     name: 'edit-photo',
     component: () => import('@/pages/EditPhotoPage.vue'),
-    meta: { title: 'Edytuj zdjecie', requiresAuth: true },
+    meta: { title: 'Edytuj zdjęcie', requiresAuth: true },
     props: true
   },
   {
     path: '/panel-tworcy',
     name: 'creator-dashboard',
     component: () => import('@/pages/CreatorDashboardPage.vue'),
-    meta: { title: 'Panel tworcy', requiresAuth: true, hideFooter: true }
+    meta: { title: 'Panel twórcy', requiresAuth: true, hideFooter: true }
   },
   {
     path: '/admin',
@@ -94,13 +94,19 @@ const routes: RouteRecordRaw[] = [
     path: '/admin/uzytkownicy',
     name: 'admin-users',
     component: () => import('@/pages/AdminUsersPage.vue'),
-    meta: { title: 'Zarzadzanie uzytkownikami', requiresAuth: true, requiresAdmin: true }
+    meta: { title: 'Zarządzanie użytkownikami', requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/admin/kategorie',
     name: 'admin-categories',
     component: () => import('@/pages/AdminCategoriesPage.vue'),
-    meta: { title: 'Zarzadzanie kategoriami', requiresAuth: true, requiresAdmin: true }
+    meta: { title: 'Zarządzanie kategoriami', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/zdjecia',
+    name: 'admin-photos',
+    component: () => import('@/pages/AdminPhotosPage.vue'),
+    meta: { title: 'Wszystkie zdjęcia', requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/:pathMatch(.*)*',

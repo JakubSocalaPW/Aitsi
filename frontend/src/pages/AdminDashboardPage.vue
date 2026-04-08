@@ -77,9 +77,9 @@ const sidebarLinks = [
   { icon: 'account_balance', label: t('adminDashboard.sideArchive'), active: false, route: '/przegladaj' },
   { icon: 'upload_file', label: t('adminDashboard.sideUploads'), active: false, route: '/moje-zdjecia' },
   { icon: 'gavel', label: t('adminDashboard.sideModeration'), active: true, route: '/admin' },
-  { icon: 'gavel', label: 'Zarządzaj kategoriami', active: false, route: '/admin/kategorie' },
-  { icon: 'gavel', label: 'Zarządzaj użytkownikami', active: false, route: '/admin/uzytkownicy' },
-
+  { icon: 'photo_library', label: 'Wszystkie zdjęcia', active: false, route: '/admin/zdjecia' },
+  { icon: 'folder', label: 'Zarządzaj kategoriami', active: false, route: '/admin/kategorie' },
+  { icon: 'people', label: 'Zarządzaj użytkownikami', active: false, route: '/admin/uzytkownicy' },
 ]
 
 </script>

@@ -5,6 +5,7 @@
 1. [Opis projektu](#1-opis-projektu)
 2. [Uzasadnienie przyjętych rozwiązań technicznych](#2-uzasadnienie-przyjętych-rozwiązań-technicznych)
 3. [Architektura systemu](#3-architektura-systemu)
+   - [Integracja frontend–backend, walidacja i obsługa błędów](#3b-integracja-frontendbackend-walidacja-i-obsługa-błędów)
 4. [Architektura informacji](#4-architektura-informacji)
 5. [Model danych](#5-model-danych)
 6. [Struktura metadanych](#6-struktura-metadanych)
@@ -229,6 +230,102 @@ Każde kolejne żądanie: Authorization: Bearer <JWT>
 
 ---
 
+## 3b. Integracja frontend–backend, walidacja i obsługa błędów
+
+### Komunikacja HTTP
+
+Frontend komunikuje się z backendem przez bibliotekę `ky` — minimalistyczny klient HTTP oparty na Fetch API. Centralna instancja klienta tworzona jest w `api/client.ts` i automatycznie dołącza nagłówek autoryzacyjny do każdego żądania:
+
+```typescript
+// api/client.ts
+export const apiClient = ky.create({
+  prefixUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:5052/api',
+  hooks: {
+    beforeRequest: [
+      (request) => {
+        const token = localStorage.getItem('cas_token')
+        if (token) request.headers.set('Authorization', `Bearer ${token}`)
+      }
+    ]
+  }
+})
+```
+
+Każdy zasób API ma własny moduł (`photos.api.ts`, `categories.api.ts` itd.) eksportujący funkcje z silnym typowaniem TypeScript — odpowiedniki DTO z backendu.
+
+### Zarządzanie stanem (Pinia)
+
+Dane pobrane z API trafiają do Pinia stores, skąd są reaktywnie dostępne dla komponentów:
+
+```
+photosApi.search(params)   →   photos.store.ts   →   BrowsePage.vue / PhotoGrid.vue
+adminApi.getUsers()        →   (lokalny ref)     →   AdminUsersPage.vue
+authApi.getMe()            →   auth.store.ts     →   AppHeader.vue / guards.ts
+```
+
+### Route guards (autoryzacja nawigacji)
+
+Plik `router/guards.ts` sprawdza meta-pola trasy przed każdą nawigacją:
+
+```
+requiresAuth: true   → użytkownik musi być zalogowany (JWT w localStorage)
+requiresAdmin: true  → rola użytkownika musi być 'admin'
+guestOnly: true      → zalogowany użytkownik przekierowany do /przegladaj
+```
+
+Przy błędzie 401 z API użytkownik jest automatycznie wylogowywany i przekierowany na stronę logowania.
+
+### Walidacja danych
+
+**Frontend (przed wysłaniem żądania):**
+
+| Pole | Reguła | Gdzie |
+|------|--------|-------|
+| Plik zdjęcia | Wymagany; typy: jpg, png, webp; max 20 MB | `ImageDropzone.vue` |
+| Tytuł | Wymagany; max 200 znaków | `PhotoUploadForm.vue`, atrybut `required` |
+| Kategoria | Wymagana (select) | `CategorySelect.vue` |
+| Data | Format `YYYY`, `YYYY-MM` lub `YYYY-MM-DD`; liczba w zakresie 1800–bieżący rok | `DatePrecisionPicker.vue` |
+| Opis | Max 2000 znaków | `maxlength` na `<textarea>` |
+| Cytat | Max 1000 znaków | `maxlength` na `<textarea>` |
+| Powód blokady | Wymagany (dialog blokady) | `BlockUserDialog.vue` |
+
+**Backend (po otrzymaniu żądania):**
+
+- Plik: sprawdzany przez `IFormFile` — brak pliku zwraca `400 Bad Request`
+- Token OAuth: Google — weryfikacja przez `googleapis.com/tokeninfo`; Facebook — weryfikacja przez `graph.facebook.com`
+- Autoryzacja: `[Authorize]` i `[Authorize(Roles = "admin")]` na metodach kontrolera
+- Własność zasobu: przy `PUT`/`DELETE` na zdjęciu sprawdzany `AuthorId == currentUserId` (lub rola admin)
+
+### Obsługa błędów
+
+**Hierarchia obsługi błędów:**
+
+```
+Błąd sieciowy / timeout
+    └── ky rzuca HTTPError lub TypeError
+           └── catch w bloku try/catch w api/*.ts lub komponencie
+                  └── toastStore.show('Wystąpił błąd', 'error')
+                         └── AppToast.vue wyświetla komunikat (aria-live="assertive")
+
+Błąd 401 Unauthorized
+    └── użytkownik wylogowany, redirect → /logowanie
+
+Błąd 403 Forbidden
+    └── komunikat toast "Brak uprawnień"
+
+Błąd 404 Not Found
+    └── redirect → NotFoundPage.vue
+```
+
+**Komunikaty błędów blokady konta:**
+Przy próbie logowania zablokowanego konta backend zwraca:
+```json
+{ "message": "Konto zostało zablokowane. Powód: <powód>" }
+```
+Frontend odczytuje tę wiadomość i wyświetla ją użytkownikowi zamiast generycznego komunikatu.
+
+---
+
 ## 4. Architektura informacji
 
 ### 4.1 Hierarchiczna struktura kategorii
@@ -254,7 +351,67 @@ Małopolska
 
 Relacja w bazie danych: samoreferencja tabeli `Categories` przez pole `ParentId`. Usunięcie kategorii jest zablokowane (`DeleteBehavior.Restrict`) gdy posiada podkategorie lub przypisane zdjęcia.
 
-### 4.2 Ścieżki użytkownika
+### 4.2 Mapa strony (sitemap)
+
+Poniżej pełna mapa wszystkich tras aplikacji wraz z poziomem dostępu:
+
+```
+/                           — Strona główna (publiczna)
+├── /przegladaj             — Przeglądaj archiwum (publiczna)
+│   └── /przegladaj/:id     — Wyniki dla kategorii (publiczna)
+├── /zdjecie/:id            — Szczegóły zdjęcia (publiczna)
+├── /mapa                   — Mapa interaktywna (publiczna)
+├── /kroniki                — Kroniki społeczności / feed (publiczna)
+├── /logowanie              — Logowanie OAuth (tylko goście)
+│
+├── /dodaj-zdjecie          — Upload zdjęcia (wymaga: Twórca)
+├── /moje-zdjecia           — Moje materiały (wymaga: Twórca)
+│   └── /edytuj-zdjecie/:id — Edycja zdjęcia (wymaga: Twórca / Admin)
+├── /panel-tworcy           — Dashboard twórcy (wymaga: Twórca)
+│
+└── /admin                  — Panel administracyjny (wymaga: Admin)
+    ├── /admin/zdjecia      — Wszystkie zdjęcia (wymaga: Admin)
+    ├── /admin/uzytkownicy  — Zarządzanie użytkownikami (wymaga: Admin)
+    └── /admin/kategorie    — Zarządzanie kategoriami (wymaga: Admin)
+```
+
+**Uzasadnienie przyjętej struktury URL:**
+- Hierarchia `/przegladaj` → `/przegladaj/:id` rozwiązuje problem orientacji — użytkownik wie, że jest „wewnątrz" archiwum, a kategoria jest podkontekstem przeglądania
+- Prefix `/admin/*` izoluje strefy administracyjne i umożliwia jednolitą ochronę przez route guard (`requiresAdmin`)
+- Polskie URL-e (`/przegladaj`, `/zdjecie`, `/moje-zdjecia`) są spójne z językiem interfejsu i poprawiają czytelność dla użytkownika
+
+### 4.3 Schemat organizacji treści
+
+```
+                    ┌─────────────────────────────┐
+                    │        ARCHIWUM              │
+                    │   (zbiór wszystkich zdjęć)   │
+                    └────────────┬────────────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+    ┌─────────▼──────┐  ┌───────▼───────┐  ┌───────▼────────┐
+    │  KATEGORIE      │  │     TAGI       │  │  LOKALIZACJA   │
+    │  (hierarchia)   │  │  (swobodne)   │  │  (mapa/GPS)    │
+    └─────────┬───────┘  └───────┬───────┘  └───────┬────────┘
+              │                  │                  │
+    ┌─────────▼───────────────────▼──────────────────▼────────┐
+    │                    ZDJĘCIE                              │
+    │  tytuł · opis · data · lokalizacja · tagi · metadane   │
+    └─────────────────────────────────────────────────────────┘
+```
+
+**Jakie problemy rozwiązuje ta struktura?**
+
+| Problem | Rozwiązanie |
+|---------|-------------|
+| Użytkownik nie zna nazwy miejsca | Filtrowanie po mapie i współrzędnych GPS |
+| Zdjęcie ma tylko przybliżoną datę | Zmienna precyzja daty (rok/miesiąc/dzień) |
+| To samo zdjęcie pasuje do wielu tematów | Tagi swobodne niezależne od hierarchii kategorii |
+| Duże zbiory trudne do przeglądania | Hierarchia kategorii + breadcrumb nawigacyjny |
+| Różne potrzeby różnych użytkowników | Trzy niezależne osie wyszukiwania (kategoria, tag, mapa) |
+
+### 4.4 Ścieżki użytkownika
 
 #### Przeglądający (bez konta)
 
@@ -288,15 +445,19 @@ Logowanie (/logowanie)
 
 ```
 Panel administracyjny (/admin)
+   ├── Wszystkie zdjęcia (/admin/zdjecia)
+   │     ├── Przeglądaj wszystkie materiały (paginacja, sortowanie)
+   │     ├── Edytuj dowolne zdjęcie → /edytuj-zdjecie/:id
+   │     └── Usuń dowolne zdjęcie
    ├── Zarządzaj użytkownikami (/admin/uzytkownicy)
-   │     └── Blokuj / odblokuj użytkownika
+   │     └── Blokuj / odblokuj użytkownika (z podaniem powodu)
    └── Zarządzaj kategoriami (/admin/kategorie)
          ├── Dodaj kategorię
          ├── Edytuj kategorię
-         └── Usuń kategorię
+         └── Usuń kategorię (zablokowane jeśli ma podkategorie lub zdjęcia)
 ```
 
-### 4.3 Taksonomia i tagowanie
+### 4.5 Taksonomia i tagowanie
 
 System stosuje dwie równoległe metody klasyfikacji:
 
@@ -503,8 +664,8 @@ Współrzędne umożliwiają wyświetlenie na mapie (Leaflet) i filtrowanie prze
 | Parametr wyszukiwania | Pola bazy danych | Typ dopasowania |
 |-----------------------|------------------|-----------------|
 | `q` (fraza) | `Title`, `Description`, `LocationLabel` | LIKE (contains) |
-| `categoryId` | `CategoryId` | Równość |
-| `tag` | `Tags.Name` | Równość (relacja M:N) |
+| `categoryId` | `CategoryId` + wszystkie podkategorie (BFS) | IN (zbiór ID) |
+| `tag` | `Tags.Name` (relacja M:N Photo↔Tag) | Równość (exact match) |
 | `dateFrom` / `dateTo` | `Date` (string) | Porównanie leksykograficzne |
 | `sortBy=date` | `Date` | Porządkowanie leksykograficzne |
 | `sortBy=createdAt` | `CreatedAt` | Porządkowanie chronologiczne |
@@ -551,7 +712,7 @@ Baza URL: `http://localhost:5052/api` (development).
 | Parametr | Typ | Opis |
 |----------|-----|------|
 | `q` | string | Wyszukiwanie pełnotekstowe po polach `Title`, `Description`, `LocationLabel` |
-| `categoryId` | int | Filtrowanie po kategorii (tylko dokładna kategoria, bez podkategorii) |
+| `categoryId` | int | Filtrowanie po kategorii — zwraca zdjęcia z wybranej kategorii **i wszystkich jej podkategorii** (BFS po drzewie) |
 | `tag` | string | Filtrowanie po nazwie tagu (np. `?tag=architektura`) |
 | `dateFrom` | string | Dolna granica daty — format `YYYY`, `YYYY-MM` lub `YYYY-MM-DD` |
 | `dateTo` | string | Górna granica daty — format `YYYY`, `YYYY-MM` lub `YYYY-MM-DD`; rok dopełniany do `YYYY-12-31` |
@@ -689,9 +850,9 @@ Wszystkie endpointy wymagają roli `admin`.
     "id": 5,
     "displayName": "Jan Kowalski",
     "avatarUrl": "https://lh3.googleusercontent.com/...",
-    "role": "Creator",
-    "googleId": "1234567890",
-    "facebookId": null
+    "role": "creator",
+    "hasGoogle": true,
+    "hasFacebook": false
   }
 }
 ```
@@ -751,11 +912,11 @@ Token JWT generowany jest z następującym payloadem:
 
 ## 8. Analiza dostępności informacji (WCAG 2.1 AA)
 
-### 7.1 Przegląd wymagania
+### 8.1 Przegląd wymagania
 
 Standard WCAG 2.1 poziom AA obejmuje cztery zasady: **Postrzegalność**, **Funkcjonalność**, **Zrozumiałość**, **Solidność** (POUR). Poniżej opisano sposób realizacji każdej z nich w systemie.
 
-### 7.2 Postrzegalność (Perceivable)
+### 8.2 Postrzegalność (Perceivable)
 
 #### Kryterium 1.1.1 — Treść nietekstowa (poziom A)
 
@@ -797,7 +958,7 @@ System udostępnia trzy rozmiary czcionki: `small`, `normal`, `large` (przełąc
 
 Tostowe powiadomienia (`AppToast`) wyświetlają się czasowo i nie blokują interakcji. Tooltip-y nie są używane.
 
-### 7.3 Funkcjonalność (Operable)
+### 8.3 Funkcjonalność (Operable)
 
 #### Kryterium 2.1.1 — Klawiatura (poziom A)
 
@@ -828,7 +989,7 @@ Każda strona posiada jeden nagłówek `<h1>`. Hierarchia nagłówków `h1` → 
 
 Reguła CSS `@media (prefers-reduced-motion: reduce)` wyłącza animacje przejść między stronami i `scroll-behavior: smooth`.
 
-### 7.4 Zrozumiałość (Understandable)
+### 8.4 Zrozumiałość (Understandable)
 
 #### Kryterium 3.1.1 — Język strony (poziom A)
 
@@ -842,7 +1003,7 @@ Błędy walidacji formularzy wyświetlane są w elemencie `<p role="alert">` bez
 
 Każde pole formularza posiada widoczną etykietę. Pola opcjonalne i wymagane są oznaczone gwiazdką `*` z wyjaśnieniem w kontekście formularza. Pole tagów zawiera wskazówkę „Oddziel tagi przecinkami".
 
-### 7.5 Solidność (Robust)
+### 8.5 Solidność (Robust)
 
 #### Kryterium 4.1.2 — Nazwa, rola, wartość (poziom A)
 
@@ -863,7 +1024,7 @@ Composable `useAnnouncer` zarządza regionem ARIA live (`aria-live="polite"` / `
 </div>
 ```
 
-### 7.6 Zestawienie kryteriów WCAG 2.1 AA
+### 8.6 Zestawienie kryteriów WCAG 2.1 AA
 
 | Kryterium | Opis | Status |
 |-----------|------|--------|
@@ -891,7 +1052,7 @@ Composable `useAnnouncer` zarządza regionem ARIA live (`aria-live="polite"` / `
 | 4.1.2 | Nazwa, rola, wartość | ✓ Natywne elementy + ARIA |
 | 4.1.3 | Komunikaty o stanie | ✓ `useAnnouncer` + aria-live |
 
-### 7.7 Dostosowanie wyglądu
+### 8.7 Dostosowanie wyglądu
 
 System implementuje pełną trójkę wariantów wyglądu wymaganych specyfikacją:
 
