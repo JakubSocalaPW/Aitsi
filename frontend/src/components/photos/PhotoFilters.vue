@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { CategoryNode } from '@/types'
 
@@ -24,8 +25,51 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const nodeMap = computed(() => {
+  const map = new Map<number, CategoryNode>()
+  function walk(nodes: CategoryNode[]) {
+    for (const n of nodes) {
+      map.set(n.id, n)
+      if (n.children?.length) walk(n.children)
+    }
+  }
+  walk(props.categories)
+  return map
+})
+
+const selectedNode = computed(() =>
+  props.categoryId != null ? nodeMap.value.get(props.categoryId) : undefined
+)
+
+const breadcrumb = computed(() => {
+  if (props.categoryId == null) return []
+  const path: CategoryNode[] = []
+  let node = nodeMap.value.get(props.categoryId)
+  while (node) {
+    path.unshift(node)
+    node = node.parentId != null ? nodeMap.value.get(node.parentId) : undefined
+  }
+  return path
+})
+
+const displayedCategories = computed(() => {
+  if (props.categoryId == null) return props.categories
+  const node = selectedNode.value
+  if (!node) return props.categories
+  if (node.children?.length) return node.children
+  // Liść: pokaż rodzeństwo (dzieci rodzica)
+  return node.parentId != null
+    ? (nodeMap.value.get(node.parentId)?.children ?? props.categories)
+    : props.categories
+})
+
 function selectCategory(id: number) {
-  emit('update:categoryId', props.categoryId === id ? undefined : id)
+  if (props.categoryId === id) {
+    // Odznacz: wróć do rodzica
+    emit('update:categoryId', selectedNode.value?.parentId ?? undefined)
+  } else {
+    emit('update:categoryId', id)
+  }
 }
 
 function onDateFromInput(event: Event) {
@@ -61,9 +105,25 @@ function onSortDirChange(event: Event) {
     <details class="filters__section" open>
       <summary class="filters__summary">Kategoria</summary>
       <div class="filters__content">
+        <nav v-if="breadcrumb.length > 0" class="filters__cat-nav" aria-label="Ścieżka kategorii">
+          <button type="button" class="filters__cat-up" @click="emit('update:categoryId', undefined)">
+            Wszystkie
+          </button>
+          <template v-for="(node, i) in breadcrumb" :key="node.id">
+            <span class="filters__cat-sep" aria-hidden="true">›</span>
+            <button
+              v-if="i < breadcrumb.length - 1"
+              type="button"
+              class="filters__cat-up"
+              @click="emit('update:categoryId', node.id)"
+            >{{ node.name }}</button>
+            <span v-else class="filters__cat-current">{{ node.name }}</span>
+          </template>
+        </nav>
+
         <div class="filters__chips">
           <button
-            v-for="cat in categories"
+            v-for="cat in displayedCategories"
             :key="cat.id"
             type="button"
             class="filters__chip"
@@ -72,9 +132,8 @@ function onSortDirChange(event: Event) {
             @click="selectCategory(cat.id)"
           >
             {{ cat.name }}
-            <span v-if="cat.photoCount != null" class="filters__chip-count">
-              {{ cat.photoCount }}
-            </span>
+            <span v-if="cat.photoCount != null" class="filters__chip-count">{{ cat.photoCount }}</span>
+            <span v-if="cat.children?.length" class="filters__chip-arrow" aria-hidden="true">›</span>
           </button>
         </div>
       </div>
@@ -233,6 +292,44 @@ function onSortDirChange(event: Event) {
   padding-top: 12px;
 }
 
+.filters__cat-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 10px;
+  font-size: var(--label-md);
+}
+
+.filters__cat-up {
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: var(--label-md);
+  font-family: var(--font-label);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.filters__cat-up:hover {
+  background: rgba(0, 70, 74, 0.08);
+}
+
+.filters__cat-sep {
+  color: var(--on-surface-variant);
+  opacity: 0.5;
+  font-size: var(--label-md);
+}
+
+.filters__cat-current {
+  padding: 2px 4px;
+  font-size: var(--label-md);
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
 .filters__chips {
   display: flex;
   flex-wrap: wrap;
@@ -274,6 +371,12 @@ function onSortDirChange(event: Event) {
 .filters__chip-count {
   font-size: var(--label-sm);
   opacity: 0.7;
+}
+
+.filters__chip-arrow {
+  font-size: var(--label-md);
+  opacity: 0.6;
+  margin-left: 2px;
 }
 
 .filters__fields {
