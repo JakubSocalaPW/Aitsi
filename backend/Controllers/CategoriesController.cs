@@ -20,7 +20,9 @@ public class CategoriesController: ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetCategories()
     {
-        var categories = await _db.Categories.ToListAsync();
+        var categories = await _db.Categories
+            .Select(c => new { c.Id, c.Name, c.Description, c.ParentId })
+            .ToListAsync();
         return Ok(categories);
     }
 
@@ -36,8 +38,11 @@ public class CategoriesController: ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategoriesById(int id)
     {
-        var category = await _db.Categories.FindAsync(id);
-        if(category == null) return NotFound();
+        var category = await _db.Categories
+            .Where(c => c.Id == id)
+            .Select(c => new { c.Id, c.Name, c.Description, c.ParentId })
+            .FirstOrDefaultAsync();
+        if (category == null) return NotFound();
         return Ok(category);
     }
 

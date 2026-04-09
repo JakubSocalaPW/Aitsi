@@ -1,4 +1,5 @@
 import { api } from './client'
+import { photosApi } from './photos.api'
 import type { Category, CategoryNode, CategoryCreatePayload, PaginatedResponse, PhotoSummary } from '@/types'
 
 function buildTree(flat: Category[]): CategoryNode[] {
@@ -32,10 +33,7 @@ export const categoriesApi = {
   },
 
   async getPhotos(id: number, params?: { page?: number; pageSize?: number }): Promise<PaginatedResponse<PhotoSummary>> {
-    const searchParams: Record<string, string> = {}
-    if (params?.page) searchParams.page = String(params.page)
-    if (params?.pageSize) searchParams.pageSize = String(params.pageSize)
-    return api.get(`categories/${id}/photos`, { searchParams }).json()
+    return photosApi.search({ categoryId: id, page: params?.page, pageSize: params?.pageSize })
   },
 
   async create(data: CategoryCreatePayload): Promise<CategoryNode> {

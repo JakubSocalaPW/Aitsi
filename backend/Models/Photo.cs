@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Backend.Models;
 
 public enum DatePrecision
@@ -43,5 +45,8 @@ public class Photo
     public User Author { get; set; } = null!;
     public Category Category { get; set; } = null!;
     public ICollection<Tag> Tags { get; set; } = [];
+
+    // Comments excluded from list responses (loaded explicitly per detail endpoint)
+    [JsonIgnore]
     public ICollection<Comment> Comments { get; set; } = [];
 }

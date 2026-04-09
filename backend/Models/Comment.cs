@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Backend.Models;
 
 public class Comment
@@ -8,8 +10,10 @@ public class Comment
     public DateTime? UpdatedAt { get; set; }
 
     public int PhotoId { get; set; }
-    public Photo Photo { get; set; } = null!;
-
     public int AuthorId { get; set; }
+
+    // Navigation — Photo excluded to avoid circular refs; Author needed for display
+    [JsonIgnore]
+    public Photo Photo { get; set; } = null!;
     public User Author { get; set; } = null!;
 }
