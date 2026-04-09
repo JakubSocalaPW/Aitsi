@@ -6,6 +6,7 @@ import { photosApi } from '@/api/photos.api'
 import type { PhotoSummary } from '@/types'
 import AdminPhotoTable from '@/components/admin/AdminPhotoTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const router = useRouter()
 const toastStore = useToastStore()
@@ -60,26 +61,28 @@ onMounted(loadPhotos)
 </script>
 
 <template>
-  <div class="container">
-    <div class="page-header">
-      <h1>Wszystkie zdjęcia</h1>
-      <span class="photo-count">{{ totalCount }} zdjęć w archiwum</span>
+  <AdminLayout>
+    <div class="container">
+      <div class="page-header">
+        <h1>Wszystkie zdjęcia</h1>
+        <span class="photo-count">{{ totalCount }} zdjęć w archiwum</span>
+      </div>
+
+      <AdminPhotoTable
+        :photos="photos"
+        :loading="loading"
+        @edit="editPhoto"
+        @delete="deletePhoto"
+      />
+
+      <AppPagination
+        :page="page"
+        :total-pages="totalPages"
+        :total-count="totalCount"
+        @update:page="onPageChange"
+      />
     </div>
-
-    <AdminPhotoTable
-      :photos="photos"
-      :loading="loading"
-      @edit="editPhoto"
-      @delete="deletePhoto"
-    />
-
-    <AppPagination
-      :page="page"
-      :total-pages="totalPages"
-      :total-count="totalCount"
-      @update:page="onPageChange"
-    />
-  </div>
+  </AdminLayout>
 </template>
 
 <style scoped>

@@ -226,9 +226,7 @@ function goToBrowse() {
                 Jak to działa?
               </button>
             </div>
-            <p class="cta-section__disclaimer">
-              Twoje dane są u nas bezpieczne. Działamy zgodnie z najwyższymi standardami cyfrowej archiwizacji.
-            </p>
+
           </div>
         </div>
       </section>
@@ -258,9 +256,7 @@ function goToBrowse() {
           </div>
         </div>
 
-        <div class="lfooter__copyright">
-          <p>© 2026 Cyfrowe Archiwum. Wszystkie prawa zastrzeżone. Projekt realizowany w trosce o wspólną pamięć.</p>
-        </div>
+
       </div>
     </footer>
 

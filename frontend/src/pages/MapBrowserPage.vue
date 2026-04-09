@@ -266,14 +266,18 @@ onMounted(() => {
 
           <!-- Search -->
           <form class="map-browser__browser-search" @submit.prevent="handleSearchSubmit">
+            <label for="map-search-input" class="map-browser__sr-only">
+              {{ t('mapBrowser.searchPlaceholder') }}
+            </label>
             <input
+              id="map-search-input"
               v-model="searchQuery"
               type="text"
               class="map-browser__browser-search-input"
               :placeholder="t('mapBrowser.searchPlaceholder')"
               @input="handleSearchInput"
             />
-            <span class="material-symbols-outlined map-browser__browser-search-icon">search</span>
+            <span class="material-symbols-outlined map-browser__browser-search-icon" aria-hidden="true">search</span>
           </form>
 
           <!-- Category pills -->
@@ -313,17 +317,35 @@ onMounted(() => {
                   :style="{ left: rangeLeftPct + '%', right: (100 - rangeRightPct) + '%' }"
                 />
               </div>
+              <label for="map-range-from" class="map-browser__sr-only">
+                {{ t('mapBrowser.chronologicalRange') }} — od roku: {{ yearFrom }}
+              </label>
               <input
+                id="map-range-from"
                 type="range"
                 min="1850" max="2025" step="1"
                 :value="yearFrom"
+                :aria-label="`Od roku: ${yearFrom}`"
+                :aria-valuemin="1850"
+                :aria-valuemax="2025"
+                :aria-valuenow="yearFrom"
+                :aria-valuetext="`${yearFrom}`"
                 class="map-browser__range-input"
                 @input="yearFrom = Number(($event.target as HTMLInputElement).value); handleFromInput()"
               />
+              <label for="map-range-to" class="map-browser__sr-only">
+                {{ t('mapBrowser.chronologicalRange') }} — do roku: {{ yearTo }}
+              </label>
               <input
+                id="map-range-to"
                 type="range"
                 min="1850" max="2025" step="1"
                 :value="yearTo"
+                :aria-label="`Do roku: ${yearTo}`"
+                :aria-valuemin="1850"
+                :aria-valuemax="2025"
+                :aria-valuenow="yearTo"
+                :aria-valuetext="`${yearTo}`"
                 class="map-browser__range-input"
                 @input="yearTo = Number(($event.target as HTMLInputElement).value); handleToInput()"
               />
@@ -464,6 +486,19 @@ onMounted(() => {
 /* ==========================================================================
    MapBrowserPage — Archive Map Browser
    ========================================================================== */
+
+/* Visually hidden — accessible to screen readers */
+.map-browser__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .map-browser {
   display: flex;

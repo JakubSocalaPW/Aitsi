@@ -88,6 +88,7 @@ public class PhotosController : ControllerBase
           .Include(p => p.Category)
           .Include(p => p.Author)
           .Include(p => p.Tags)
+          .Where(p => p.IsApproved)
           .AsQueryable();
 
       if (!string.IsNullOrEmpty(q))

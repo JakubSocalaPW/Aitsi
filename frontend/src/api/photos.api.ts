@@ -3,7 +3,7 @@ import type { PaginatedResponse, PhotoSummary, PhotoDetail, PhotoSearchParams, P
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
-interface BackendPhoto {
+export interface BackendPhoto {
   id: number
   title: string
   description?: string
@@ -28,13 +28,13 @@ interface BackendPhoto {
   tags: { id: number; name: string }[]
 }
 
-function toImageUrl(path: string): string {
+export function toImageUrl(path: string): string {
   if (!path) return 'https://placehold.co/1200x900/ccc/666?text=Brak+zdjecia'
   if (path.startsWith('http')) return path
   return `${API_BASE.replace('/api', '')}${path}`
 }
 
-function toSummary(p: BackendPhoto): PhotoSummary {
+export function toSummary(p: BackendPhoto): PhotoSummary {
   return {
     id: p.id,
     title: p.title,

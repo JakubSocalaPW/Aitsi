@@ -109,6 +109,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Wszystkie zdjęcia', requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/moderacja',
+    name: 'admin-moderation',
+    component: () => import('@/pages/AdminModerationPage.vue'),
+    meta: { title: 'Moderacja zdjęć', requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/pages/NotFoundPage.vue'),

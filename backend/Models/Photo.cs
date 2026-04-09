@@ -32,6 +32,7 @@ public class Photo
     public string? Digitization { get; set; }
     public string? Quote { get; set; }
 
+    public bool IsApproved { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Foreign keys

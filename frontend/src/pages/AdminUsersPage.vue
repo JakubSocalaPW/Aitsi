@@ -6,6 +6,7 @@ import { adminApi } from '@/api/admin.api'
 import type { User } from '@/types'
 import UserTable from '@/components/admin/UserTable.vue'
 import BlockUserDialog from '@/components/admin/BlockUserDialog.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
@@ -64,23 +65,25 @@ async function handleUnblock(userId: number) {
 </script>
 
 <template>
-  <div class="container">
-    <h1>{{ t('admin.users') }}</h1>
+  <AdminLayout>
+    <div class="container">
+      <h1>{{ t('admin.users') }}</h1>
 
-    <UserTable
-      :users="users"
-      :loading="loading"
-      @block="openBlockDialog"
-      @unblock="handleUnblock"
-    />
+      <UserTable
+        :users="users"
+        :loading="loading"
+        @block="openBlockDialog"
+        @unblock="handleUnblock"
+      />
 
-    <BlockUserDialog
-      :open="blockDialogOpen"
-      :user-name="blockTarget?.displayName"
-      @confirm="handleBlock"
-      @cancel="blockDialogOpen = false"
-    />
-  </div>
+      <BlockUserDialog
+        :open="blockDialogOpen"
+        :user-name="blockTarget?.displayName"
+        @confirm="handleBlock"
+        @cancel="blockDialogOpen = false"
+      />
+    </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
@@ -91,9 +94,7 @@ async function handleUnblock(userId: number) {
 }
 
 @media (min-width: 768px) {
-  .container {
-    padding: 32px 24px;
-  }
+  .container { padding: 32px 24px; }
 }
 
 .container h1 {

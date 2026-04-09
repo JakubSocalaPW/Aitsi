@@ -80,18 +80,59 @@ public class AdminController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("photos/pending")]
+    public async Task<IActionResult> GetPendingPhotos(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var query = _db.Photos
+            .Include(p => p.Author)
+            .Include(p => p.Category)
+            .Include(p => p.Tags)
+            .Where(p => !p.IsApproved)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            items,
+            page,
+            pageSize,
+            totalCount,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
+    }
+
+    [HttpPut("photos/{id}/approve")]
+    public async Task<IActionResult> ApprovePhoto(int id)
+    {
+        var photo = await _db.Photos.FindAsync(id);
+        if (photo == null) return NotFound();
+
+        photo.IsApproved = true;
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats()
     {
-        var totalPhotos = await _db.Photos.CountAsync();
+        var totalPhotos = await _db.Photos.CountAsync(p => p.IsApproved);
         var totalUsers = await _db.Users.CountAsync();
         var blockedUsers = await _db.Users.CountAsync(u => u.IsBlocked);
+        var pendingPhotos = await _db.Photos.CountAsync(p => !p.IsApproved);
 
         return Ok(new
         {
             totalPhotos,
             totalUsers,
-            blockedUsers
+            blockedUsers,
+            pendingPhotos
         });
     }
 }

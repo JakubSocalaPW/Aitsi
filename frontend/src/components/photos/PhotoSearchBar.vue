@@ -60,14 +60,17 @@ onMounted(() => {
     aria-label="Wyszukiwanie zdjęć"
     @submit.prevent="onSubmit"
   >
+    <label for="photo-search-input" class="search-bar__label">
+      {{ t('search.placeholder') }}
+    </label>
     <div class="search-bar__wrapper">
       <input
+        id="photo-search-input"
         ref="inputRef"
         type="search"
         class="search-bar__input"
         :value="localValue"
         :placeholder="t('search.placeholder')"
-        :aria-label="t('search.placeholder')"
         @input="onInput"
       />
 
@@ -92,6 +95,19 @@ onMounted(() => {
 .search-bar {
   display: flex;
   gap: 12px;
+}
+
+/* Visually hidden — accessible to screen readers */
+.search-bar__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .search-bar__wrapper {

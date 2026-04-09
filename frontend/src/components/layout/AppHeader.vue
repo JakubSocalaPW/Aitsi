@@ -37,8 +37,12 @@ function handleLogout() {
       <AppNav class="header__nav" />
 
       <form class="header__search" role="search" @submit.prevent="handleSearch">
-        <span class="material-symbols-outlined header__search-icon">search</span>
+        <label for="header-search-input" class="header__search-label">
+          {{ t('search.placeholder') }}
+        </label>
+        <span class="material-symbols-outlined header__search-icon" aria-hidden="true">search</span>
         <input
+          id="header-search-input"
           v-model="searchQuery"
           type="search"
           class="header__search-input"
@@ -220,6 +224,19 @@ function handleLogout() {
   position: relative;
   margin-left: auto;
   margin-right: 16px;
+}
+
+/* Visually hidden label */
+.header__search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .header__search-icon {

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { CategoryNode, CategoryCreatePayload } from '@/types'
 import { categoriesApi } from '@/api/categories.api'
 import CategoryForm from '@/components/categories/CategoryForm.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const { t } = useI18n()
 
@@ -105,6 +106,7 @@ function closeForm() {
 </script>
 
 <template>
+  <AdminLayout>
   <div class="container">
     <div class="page-header">
       <h1>{{ t('admin.categories') }}</h1>
@@ -187,6 +189,7 @@ function closeForm() {
       </div>
     </Teleport>
   </div>
+  </AdminLayout>
 </template>
 
 <style scoped>

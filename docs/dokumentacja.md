@@ -370,7 +370,8 @@ Poniżej pełna mapa wszystkich tras aplikacji wraz z poziomem dostępu:
 ├── /panel-tworcy           — Dashboard twórcy (wymaga: Twórca)
 │
 └── /admin                  — Panel administracyjny (wymaga: Admin)
-    ├── /admin/zdjecia      — Wszystkie zdjęcia (wymaga: Admin)
+    ├── /admin/moderacja    — Kolejka moderacji — nowe zdjęcia (wymaga: Admin)
+    ├── /admin/zdjecia      — Wszystkie zdjęcia zatwierdzone (wymaga: Admin)
     ├── /admin/uzytkownicy  — Zarządzanie użytkownikami (wymaga: Admin)
     └── /admin/kategorie    — Zarządzanie kategoriami (wymaga: Admin)
 ```
@@ -445,8 +446,13 @@ Logowanie (/logowanie)
 
 ```
 Panel administracyjny (/admin)
+   ├── Moderacja zdjęć (/admin/moderacja)
+   │     ├── Lista nowych zdjęć oczekujących na akceptację
+   │     ├── Akceptuj → zdjęcie staje się widoczne publicznie
+   │     ├── Podgląd → /zdjecie/:id
+   │     └── Usuń → usuwa zdjęcie i plik z dysku
    ├── Wszystkie zdjęcia (/admin/zdjecia)
-   │     ├── Przeglądaj wszystkie materiały (paginacja, sortowanie)
+   │     ├── Przeglądaj zatwierdzone materiały (paginacja, sortowanie)
    │     ├── Edytuj dowolne zdjęcie → /edytuj-zdjecie/:id
    │     └── Usuń dowolne zdjęcie
    ├── Zarządzaj użytkownikami (/admin/uzytkownicy)
@@ -554,6 +560,7 @@ Uwaga: Pole `Role` przechowywane jako string (`HasConversion<string>()`), co uł
 | `Description` | text | NULL | Opis tekstowy |
 | `ImagePath` | varchar | NOT NULL | Ścieżka do pliku (np. `/uploads/uuid.jpg`) |
 | `ThumbnailPath` | varchar | NOT NULL | Ścieżka do miniatury |
+| `IsApproved` | bool | NOT NULL, default false | Czy zdjęcie zaakceptowane przez moderatora |
 | `Lat` | double | NULL | Szerokość geograficzna |
 | `Lng` | double | NULL | Długość geograficzna |
 | `LocationLabel` | varchar | NULL | Tekstowy opis lokalizacji |
@@ -568,6 +575,8 @@ Uwaga: Pole `Role` przechowywane jako string (`HasConversion<string>()`), co uł
 | `CreatedAt` | timestamp | NOT NULL | Data dodania do systemu (UTC) |
 | `AuthorId` | int | FK → User, NOT NULL | Autor materiału |
 | `CategoryId` | int | FK → Category, NOT NULL | Kategoria hierarchiczna |
+
+Nowe zdjęcia trafiają do systemu z `IsApproved = false` i są widoczne wyłącznie w panelu moderacji admina. Po akceptacji (`IsApproved = true`) zdjęcie pojawia się w publicznym archiwum i wynikach wyszukiwania.
 
 ### 5.4 Tabela: Category
 
@@ -700,7 +709,7 @@ Baza URL: `http://localhost:5052/api` (development).
 
 | Metoda | Endpoint | Dostęp | Opis |
 |--------|----------|--------|------|
-| `GET` | `/api/photos` | 🟢 **PUBLICZNY** | Wyszukiwanie i paginacja zdjęć. Parametry query opisane poniżej. |
+| `GET` | `/api/photos` | 🟢 **PUBLICZNY** | Wyszukiwanie i paginacja zdjęć **zaakceptowanych** (`IsApproved = true`). Parametry query opisane poniżej. |
 | `GET` | `/api/photos/{id}` | 🟢 **PUBLICZNY** | Szczegóły pojedynczego zdjęcia — pełne metadane, tagi, autor, kategoria. |
 | `GET` | `/api/photos/my` | 🔒 **TWÓRCA** | Lista własnych zdjęć zalogowanego użytkownika (z paginacją). |
 | `POST` | `/api/photos` | 🔒 **TWÓRCA** | Upload nowego zdjęcia. Body: `multipart/form-data`. Pola opisane poniżej. |
@@ -798,7 +807,9 @@ Wszystkie endpointy wymagają roli `admin`.
 | `GET` | `/api/admin/users` | 🔴 **ADMIN** | Paginowana lista użytkowników z polami: id, email, displayName, role, isBlocked, blockReason, createdAt. Parametry: `page`, `pageSize` (domyślnie 20). |
 | `PUT` | `/api/admin/users/{id}/block` | 🔴 **ADMIN** | Zablokowanie użytkownika. Body: `{ "reason": "Powód blokady" }`. |
 | `PUT` | `/api/admin/users/{id}/unblock` | 🔴 **ADMIN** | Odblokowanie użytkownika. |
-| `GET` | `/api/admin/stats` | 🔴 **ADMIN** | Statystyki systemu: `totalPhotos`, `totalUsers`, `blockedUsers`. |
+| `GET` | `/api/admin/stats` | 🔴 **ADMIN** | Statystyki systemu: `totalPhotos`, `totalUsers`, `blockedUsers`, `pendingPhotos`. |
+| `GET` | `/api/admin/photos/pending` | 🔴 **ADMIN** | Paginowana lista zdjęć oczekujących na moderację (`IsApproved = false`), posortowanych od najnowszych. |
+| `PUT` | `/api/admin/photos/{id}/approve` | 🔴 **ADMIN** | Akceptacja zdjęcia — ustawia `IsApproved = true`, zdjęcie staje się widoczne publicznie. |
 
 ---
 
@@ -905,8 +916,10 @@ Token JWT generowany jest z następującym payloadem:
 | PUT | `/api/admin/users/{id}/block` | | | ✓ |
 | PUT | `/api/admin/users/{id}/unblock` | | | ✓ |
 | GET | `/api/admin/stats` | | | ✓ |
+| GET | `/api/admin/photos/pending` | | | ✓ |
+| PUT | `/api/admin/photos/{id}/approve` | | | ✓ |
 
-**Łącznie: 22 endpointy — 7 publicznych, 6 wyłącznie twórcy, 9 wyłącznie admina.**
+**Łącznie: 24 endpointy — 7 publicznych, 6 wyłącznie twórcy, 11 wyłącznie admina.**
 
 ---
 
