@@ -2928,19 +2928,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/jakubsocala/.nuget/packages/": {}
+    "C:\\Users\\jakub\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/jakubsocala/Workspace/AitsiB/backend/Backend.csproj",
+      "projectUniqueName": "C:\\Users\\jakub\\Desktop\\code\\Aitsi\\backend\\Backend.csproj",
       "projectName": "Backend",
-      "projectPath": "/Users/jakubsocala/Workspace/AitsiB/backend/Backend.csproj",
-      "packagesPath": "/Users/jakubsocala/.nuget/packages/",
-      "outputPath": "/Users/jakubsocala/Workspace/AitsiB/backend/obj/",
+      "projectPath": "C:\\Users\\jakub\\Desktop\\code\\Aitsi\\backend\\Backend.csproj",
+      "packagesPath": "C:\\Users\\jakub\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\jakub\\Desktop\\code\\Aitsi\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/jakubsocala/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\jakub\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -3021,7 +3021,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.418/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
